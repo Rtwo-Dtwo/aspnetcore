@@ -76,7 +76,7 @@ export function attachToEventDelegator(eventDelegator: EventDelegator): void {
     const anchorTarget = findAnchorTarget(event);
 
     if (anchorTarget && canProcessAnchor(anchorTarget)) {
-      const href = anchorTarget.getAttribute('href')!;
+      const href = getAnchorHref(anchorTarget)!;
       const absoluteHref = toAbsoluteUri(href);
 
       if (isWithinBaseUriSpace(absoluteHref)) {
@@ -254,7 +254,7 @@ export function toAbsoluteUri(relativeUri: string): string {
   return testAnchor.href;
 }
 
-function findAnchorTarget(event: MouseEvent): HTMLAnchorElement | null {
+function findAnchorTarget(event: MouseEvent): HTMLAnchorElement | SVGAElement | null {
   // _blazorDisableComposedPath is a temporary escape hatch in case any problems are discovered
   // in this logic. It can be removed in a later release, and should not be considered supported API.
   const path = !window['_blazorDisableComposedPath'] && event.composedPath && event.composedPath();
@@ -264,8 +264,11 @@ function findAnchorTarget(event: MouseEvent): HTMLAnchorElement | null {
     // know what internal element was clicked.
     for (let i = 0; i < path.length; i++) {
       const candidate = path[i];
-      if (candidate instanceof Element && candidate.tagName === 'A') {
-        return candidate as HTMLAnchorElement;
+        if (candidate instanceof SVGAElement) {
+          return candidate as SVGAElement;
+        }
+        else if (candidate instanceof Element && candidate.tagName === 'A') {
+          return candidate as HTMLAnchorElement;
       }
     }
     return null;
@@ -302,10 +305,18 @@ function eventHasSpecialKey(event: MouseEvent) {
   return event.ctrlKey || event.shiftKey || event.altKey || event.metaKey;
 }
 
-function canProcessAnchor(anchorTarget: HTMLAnchorElement) {
+function canProcessAnchor(anchorTarget: HTMLAnchorElement | SVGAElement) {
   const targetAttributeValue = anchorTarget.getAttribute('target');
   const opensInSameFrame = !targetAttributeValue || targetAttributeValue === '_self';
   return opensInSameFrame && anchorTarget.hasAttribute('href') && !anchorTarget.hasAttribute('download');
+}
+
+function getAnchorHref(anchorTarget: HTMLAnchorElement | SVGAElement) {    
+    if (anchorTarget instanceof HTMLAnchorElement) {
+      return anchorTarget.href;
+    } else {
+      return anchorTarget.href.animVal;
+    }
 }
 
 // Keep in sync with Components/src/NavigationOptions.cs

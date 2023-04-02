@@ -3,13 +3,11 @@
 
 using System.Globalization;
 using System.Runtime.InteropServices;
-using System.Text;
 using BasicTestApp;
 using BasicTestApp.RouterTest;
 using Microsoft.AspNetCore.Components.E2ETest.Infrastructure;
 using Microsoft.AspNetCore.Components.E2ETest.Infrastructure.ServerFixtures;
 using Microsoft.AspNetCore.E2ETesting;
-using Microsoft.AspNetCore.Testing;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 using Xunit.Abstractions;
@@ -181,6 +179,17 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
             // to the tab that has already been closed
             Browser.SwitchTo().Window(Browser.WindowHandles.First());
         }
+    }
+
+    [Fact]
+    public void CanFollowSVGLinkToOtherPage()
+    {
+        SetUrlViaPushState("/");
+
+        var app = Browser.MountTestComponent<TestRouter>();
+        app.FindElement(By.Id("svg-link-to-other")).Click();
+        Browser.Equal("This is another page.", () => app.FindElement(By.Id("test-info")).Text);
+        AssertHighlightedLinks("Other", "Other with base-relative URL (matches all)");
     }
 
     [Fact]
@@ -845,7 +854,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         // Add a navigation lock that blocks internal navigations
         Browser.FindElement(By.Id("add-navigation-lock")).Click();
         Browser.FindElement(By.CssSelector("#navigation-lock-0 > input.block-internal-navigation")).Click();
-        
+
         var uriBeforeBlockedNavigation = Browser.FindElement(By.Id("test-info")).Text;
         var relativeCanceledUri = "/mycanceledtestpath";
         var expectedCanceledAbsoluteUri = $"{_serverFixture.RootUri}subdir{relativeCanceledUri}";
@@ -941,7 +950,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         // Add a navigation lock that blocks internal navigations
         Browser.FindElement(By.Id("add-navigation-lock")).Click();
         Browser.FindElement(By.CssSelector("#navigation-lock-0 > input.block-internal-navigation")).Click();
-        
+
         var uriBeforeBlockedNavigation = Browser.FindElement(By.Id("test-info")).Text;
         var expectedCanceledRelativeUri = $"/subdir/some-path-0";
 
@@ -986,7 +995,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         // Add a navigation lock that blocks internal navigations
         Browser.FindElement(By.Id("add-navigation-lock")).Click();
         Browser.FindElement(By.CssSelector("#navigation-lock-0 > input.block-internal-navigation")).Click();
-        
+
         var uriBeforeBlockedNavigation = Browser.FindElement(By.Id("test-info")).Text;
 
         var expectedCanceledAbsoluteUri = $"{_serverFixture.RootUri}subdir/some-path-0";
@@ -1168,7 +1177,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         // Add a navigation lock that blocks internal navigations
         Browser.FindElement(By.Id("add-navigation-lock")).Click();
         Browser.FindElement(By.CssSelector("#navigation-lock-0 > input.block-internal-navigation")).Click();
-        
+
         var uriBeforeBlockedNavigation = Browser.FindElement(By.Id("test-info")).Text;
 
         Browser.FindElement(By.Id("programmatic-navigation")).Click();
@@ -1197,7 +1206,7 @@ public class RoutingTest : ServerTestBase<ToggleExecutionModeServerFixture<Progr
         // Add a navigation lock that blocks internal navigations
         Browser.FindElement(By.Id("add-navigation-lock")).Click();
         Browser.FindElement(By.CssSelector("#navigation-lock-0 > input.block-internal-navigation")).Click();
-        
+
         var uriBeforeBlockedNavigation = Browser.FindElement(By.Id("test-info")).Text;
 
         Browser.FindElement(By.Id("internal-link-navigation")).Click();
